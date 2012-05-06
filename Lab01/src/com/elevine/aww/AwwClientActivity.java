@@ -5,18 +5,17 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.Map;
+
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 import android.app.ListActivity;
@@ -26,8 +25,9 @@ import android.os.Bundle;
 
 public class AwwClientActivity extends ListActivity {
 	private static final String AWW_URL = "http://www.reddit.com/r/aww.json";
-	private List<Post> posts = new ArrayList<Post>();
+	private List<RedditResponse.PostWrapper> posts = new ArrayList<RedditResponse.PostWrapper>();
 	private ProgressDialog pd = null;
+	private ObjectMapper mapper = new ObjectMapper();
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -66,39 +66,25 @@ public class AwwClientActivity extends ListActivity {
 					responseBody.append(nextLine);
 
 				}
-				JSONObject jsonResponse = new JSONObject(responseBody.toString());
-				JSONArray children = jsonResponse.getJSONObject("data").getJSONArray("children");
 				
-				for (int index = 0; index < children.length(); index++) {
-					JSONObject data = children.getJSONObject(index).getJSONObject("data");
-					
-					String title  = data.getString("title");
-					String imageUrl = data.getString("thumbnail");
-					
-					Post post = new Post(title, imageUrl);
-					posts.add(post);
-
-					try {
-						get(100, TimeUnit.MILLISECONDS);
-					} catch (ExecutionException e) {
-						e.printStackTrace();
-					} catch (TimeoutException e) {
-						e.printStackTrace();
-					}
-
-					publishProgress(index, children.length());
-				}
+				RedditResponse jsonResponse = mapper.readValue(responseBody.toString(), RedditResponse.class);
+				posts = jsonResponse.data.getChildren();
+				
 			} catch (ClientProtocolException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
-			} catch (JSONException e) {
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
 			}
+			
 			return null;
 		}
+		
+		@SuppressWarnings("unchecked")
+		List<Map<String, Object>> getData(Map<String,Object> jsonResponse){
+			Map<String,Object> data = mapper.convertValue(jsonResponse.get("data"), Map.class);
+			return mapper.convertValue(data.get("children"), List.class);
+		}
+		
 		
 		@Override
 		protected void onProgressUpdate(Integer... values) {
