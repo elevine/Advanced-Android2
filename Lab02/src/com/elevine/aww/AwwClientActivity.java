@@ -1,20 +1,11 @@
 package com.elevine.aww;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.codehaus.jackson.map.ObjectMapper;
-
+import org.springframework.web.client.RestTemplate;
 
 import android.app.ListActivity;
 import android.app.ProgressDialog;
@@ -50,30 +41,10 @@ public class AwwClientActivity extends ListActivity {
 		
 		@Override
 		protected Void doInBackground(Void... params) {
-			HttpClient client = new DefaultHttpClient();
-			HttpGet request = new HttpGet(AWW_URL);
-			HttpResponse response;
-			try {
-				response = client.execute(request);
-				BufferedReader reader = new BufferedReader(
-						new InputStreamReader(response.getEntity().getContent()));
-
-				StringBuilder responseBody = new StringBuilder();
-				String nextLine = null;
-				while ((nextLine = reader.readLine()) != null) {
-					responseBody.append(nextLine);
-
-				}
-				
-				RedditResponse jsonResponse = mapper.readValue(responseBody.toString(), RedditResponse.class);
-				posts = jsonResponse.data.getChildren();
-				
-			} catch (ClientProtocolException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			
+			RestTemplate template = new RestTemplate();
+			RedditResponse jsonResponse =  template.getForObject(AWW_URL, RedditResponse.class);
+			posts = jsonResponse.data.getChildren();
+						
 			return null;
 		}
 		
