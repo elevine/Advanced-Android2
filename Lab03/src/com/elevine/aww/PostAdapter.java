@@ -3,6 +3,7 @@ package com.elevine.aww;
 import java.util.List;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,11 +18,14 @@ import com.github.ignition.support.images.remote.RemoteImageLoader;
 public class PostAdapter extends ArrayAdapter<PostWrapper> {
 	LayoutInflater inflater = null;
 	private RemoteImageLoader imageLoader = null;
+	private Drawable defaultDrawable = null;
 	
 	public PostAdapter(Context context, List<PostWrapper> objects) {
 		super(context, R.layout.post_row, objects);
 		this.inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		this.imageLoader = new RemoteImageLoader(context);
+		this.imageLoader.setDownloadFailedDrawable(context.getResources().getDrawable(R.drawable.error));
+		this.defaultDrawable = context.getResources().getDrawable(R.drawable.picture);
 	}
 	
 	@Override
@@ -41,7 +45,8 @@ public class PostAdapter extends ArrayAdapter<PostWrapper> {
         Post post = postWrapper.getData();
         ViewHolder holder = (ViewHolder)view.getTag();
         holder.titleView.setText(post.getTitle());
-        imageLoader.loadImage(post.getThumbnail(), holder.thumbnailView);
+        
+        imageLoader.loadImage(post.getThumbnail(), holder.thumbnailView, defaultDrawable);
                
         return view;
 	}

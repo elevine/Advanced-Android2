@@ -42,6 +42,15 @@ public class RedditResponse {
 	public static class Post{
 		private String title;
 		private String thumbnail;
+		private String url;
+		
+		
+		public String getUrl() {
+			return url;
+		}
+		public void setUrl(String url) {
+			this.url = url;
+		}
 		public String getTitle() {
 			return title;
 		}

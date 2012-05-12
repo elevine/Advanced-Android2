@@ -5,72 +5,93 @@ import java.util.List;
 
 import org.springframework.web.client.RestTemplate;
 
-import android.app.ListActivity;
-import android.app.ProgressDialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ListView;
 
-public class AwwClientActivity extends ListActivity {
+import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.Window;
+import com.elevine.aww.RedditResponse.Post;
+
+public class AwwClientActivity extends SherlockListActivity {
 	private static final String AWW_URL = "http://www.reddit.com/r/aww.json";
 	private List<RedditResponse.PostWrapper> posts = new ArrayList<RedditResponse.PostWrapper>();
-	private ProgressDialog pd = null;
-	
+
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-	}
-	@Override
-	protected void onResume() {
-		// TODO Auto-generated method stub
-		super.onResume();
+
+		// This has to be called before setContentView and you must use the
+		// class in com.actionbarsherlock.view and NOT android.view
+		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+
+		setContentView(R.layout.main);
 		new FetchDataTask().execute();
+
+	}
+	
+	
+	@Override
+	protected void onListItemClick(ListView l, View v, int position, long id) {
+		Post post = posts.get(position).getData();
+		Intent i = new Intent(Intent.ACTION_VIEW);
+		i.setData(Uri.parse(post.getUrl()));
+		startActivity(i);
+	}
+	
+
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		menu.add("Refresh")
+			.setIcon(R.drawable.ic_action_refresh)
+			.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		if(item.getTitle().equals("Refresh")){
+			new FetchDataTask().execute();
+			return true;
+		}
+		else{
+			return super.onOptionsItemSelected(item);
+		}
 	}
 
 	private class FetchDataTask extends AsyncTask<Void, Integer, Void> {
 		@Override
 		protected void onPreExecute() {
 			super.onPreExecute();
-
-			pd = ProgressDialog.show(AwwClientActivity.this, "Working..",
-					"Fetching new posts!", false);
+			setSupportProgressBarIndeterminateVisibility(true);
 		}
-		
+
 		@Override
 		protected Void doInBackground(Void... params) {
 			RestTemplate template = new RestTemplate();
-			RedditResponse jsonResponse =  template.getForObject(AWW_URL, RedditResponse.class);
+			RedditResponse jsonResponse = template.getForObject(AWW_URL,
+					RedditResponse.class);
 			posts = jsonResponse.data.getChildren();
-						
+
 			return null;
 		}
-		
-		
-		@Override
-		protected void onProgressUpdate(Integer... values) {
-			if (values[0] == 0) {
-				pd.hide();
-				pd = new ProgressDialog(AwwClientActivity.this);
-				pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-				pd.setMessage("Processing posts...");
-				pd.setCancelable(false);
-				pd.setMax(values[1]);
-				pd.show();
-			}
 
-			pd.setProgress(values[0]);
-
-		}
-		
 		@Override
 		protected void onPostExecute(Void result) {
 			super.onPostExecute(result);
 
-			pd.dismiss();
 			PostAdapter adapter = new PostAdapter(AwwClientActivity.this, posts);
 			setListAdapter(adapter);
+			setSupportProgressBarIndeterminateVisibility(false);
 		}
-		
 
 	}
 
