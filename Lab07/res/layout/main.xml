@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/fragment_container"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+
+        <fragment
+            android:id="@+id/posts_fragment"
+            android:name="com.elevine.aww.PostsFragment"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" />
+
+
+</RelativeLayout>
