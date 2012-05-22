@@ -88,11 +88,14 @@ public class AwwClientActivity extends SherlockFragmentActivity {
 			this.menu.removeItem(favoritesMenuItem.getItemId());
 			return true;
 		} else if (item.getItemId() == android.R.id.home) {
-			this.fragmentManager.popBackStack();
+			
+			if(this.favoritesFragment.isVisible()){
+				this.fragmentManager.popBackStack();
 
-			actionBar.setDisplayHomeAsUpEnabled(false);
-			actionBar.setTitle("Aww!");
-			this.onCreateOptionsMenu(menu);
+				actionBar.setDisplayHomeAsUpEnabled(false);
+				actionBar.setTitle("Aww!");
+				this.onCreateOptionsMenu(menu);
+			}
 			return true;
 		} else {
 			return super.onOptionsItemSelected(item);
